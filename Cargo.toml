@@ -8,7 +8,7 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-eframe = "0.13.0"
+eframe = "0.13"
 
 serde = { version = "1", features = ["derive"], optional = true }
 
