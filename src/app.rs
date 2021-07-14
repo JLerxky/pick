@@ -4,6 +4,7 @@ use eframe::{egui, epi};
 #[cfg_attr(feature = "persistence", serde(default))]
 pub struct TemplateApp {
     label: String,
+    msg_send: String,
 
     #[cfg_attr(feature = "persistence", serde(skip))]
     value: f32,
@@ -13,6 +14,7 @@ impl Default for TemplateApp {
     fn default() -> Self {
         Self {
             label: "Hello JLer!".to_owned(),
+            msg_send: "".to_owned(),
             value: 1.0,
         }
     }
@@ -34,12 +36,40 @@ impl epi::App for TemplateApp {
     }
 
     fn update(&mut self, ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {
-        let Self { label, value } = self;
+        let Self {
+            label,
+            msg_send,
+            value,
+        } = self;
+
+        egui::SidePanel::right("right_panel")
+            .max_width(1024.0)
+            .resizable(true)
+            .show(ctx, |ui| {
+                ui.with_layout(egui::Layout::default().with_cross_justify(true), |ui| {
+                    ui.heading("Side Panel");
+                    ui.label(value.to_string());
+                });
+            });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading(label.clone());
+            ui.heading(label.as_str());
             ui.label(value.to_string());
-            egui::warn_if_debug_build(ui);
         });
+
+        egui::Window::new("Window1")
+            .id(egui::Id::new("Window1"))
+            .resizable(false)
+            .collapsible(false)
+            .title_bar(false)
+            .scroll(false)
+            .auto_sized()
+            .enabled(true)
+            .anchor(egui::Align2::LEFT_BOTTOM, egui::Vec2::ZERO)
+            .show(ctx, |ui| {
+                ui.with_layout(egui::Layout::default().with_cross_justify(true), |ui| {
+                    ui.add(egui::TextEdit::multiline(msg_send).desired_width(6000.0));
+                });
+            });
     }
 }
