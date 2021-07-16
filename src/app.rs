@@ -9,6 +9,8 @@ pub struct MainApp {
     msg_send: String,
     #[cfg_attr(feature = "persistence", serde(skip))]
     value: f32,
+
+    bullet_queue: Vec<Bullet>,
 }
 
 impl Default for MainApp {
@@ -18,6 +20,7 @@ impl Default for MainApp {
             label: "Hello JLer!".to_owned(),
             msg_send: "".to_owned(),
             value: 1.0,
+            bullet_queue: Vec::new(),
         }
     }
 }
@@ -57,21 +60,21 @@ impl epi::App for MainApp {
             label,
             msg_send,
             value,
+            bullet_queue,
         } = self;
 
         let input = ctx.input();
 
         // 按键事件
         if !input.modifiers.ctrl && input.key_released(egui::Key::Enter) {
+            bullet_queue.push(Bullet {
+                id: rand::Rng::gen_range(&mut rand::thread_rng(), 0..200000),
+                speed: rand::Rng::gen_range(&mut rand::thread_rng(), 100..200) as f32,
+                time: input.time,
+                msg: msg_send.to_string(),
+                height: rand::Rng::gen_range(&mut rand::thread_rng(), 0..app_size[1] as i32) as f32,
+            });
             *msg_send = String::default();
-
-            send_dm(
-                input.time,
-                rand::Rng::gen_range(&mut rand::thread_rng(), 0..100),
-                app_size,
-                ctx,
-                msg_send,
-            );
         }
 
         egui::SidePanel::right("right_panel")
@@ -96,30 +99,53 @@ impl epi::App for MainApp {
             });
         });
 
-        // for i in 0..1000 {
-        //     send_dm(input, i, app_size, ctx, msg_send);
-        // }
+        show_bullet_screen(bullet_queue, input, app_size, ctx);
 
         ctx.request_repaint();
     }
 }
 
-fn send_dm(time: f64, index: i32, app_size: &[f32; 2], ctx: &egui::CtxRef, _msg_send: &str) {
-    let pos = egui::Pos2::new(time as f32 * 100.0, index as f32);
-    if pos.x < app_size[0] {
-        egui::Window::new(format!("dm{}", index))
-            .id(egui::Id::new(format!("dm{}", index)))
-            .resizable(false)
-            .collapsible(false)
-            .title_bar(false)
-            .scroll(false)
-            .fixed_pos(pos)
-            .frame(egui::Frame::none())
-            .enabled(true)
-            .show(ctx, |ui| {
-                ui.with_layout(egui::Layout::default().with_cross_justify(true), |ui| {
-                    ui.label("msg_send");
-                });
-            });
-    }
+fn show_bullet_screen(
+    bullet_queue: &mut Vec<Bullet>,
+    input: &egui::InputState,
+    app_size: &mut [f32; 2],
+    ctx: &egui::CtxRef,
+) {
+    *bullet_queue = bullet_queue
+        .iter()
+        .filter_map(|bullet| {
+            let pos = egui::Pos2::new(
+                (input.time - bullet.time) as f32 * bullet.speed,
+                bullet.height,
+            );
+            if pos.x < app_size[0] {
+                egui::Window::new(format!("dm{}", bullet.id))
+                    .id(egui::Id::new(format!("dm{}", bullet.id)))
+                    .resizable(false)
+                    .collapsible(false)
+                    .title_bar(false)
+                    .scroll(false)
+                    .fixed_pos(pos)
+                    .frame(egui::Frame::none())
+                    .enabled(true)
+                    .show(ctx, |ui| {
+                        ui.with_layout(egui::Layout::default().with_cross_justify(true), |ui| {
+                            ui.label(&bullet.msg);
+                        });
+                    });
+                return Some(bullet.clone());
+            } else {
+                return None;
+            }
+        })
+        .collect();
+}
+
+#[derive(Clone)]
+pub struct Bullet {
+    id: usize,
+    speed: f32,
+    time: f64,
+    msg: String,
+    height: f32,
 }
