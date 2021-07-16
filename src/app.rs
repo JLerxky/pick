@@ -64,6 +64,14 @@ impl epi::App for MainApp {
         // 按键事件
         if !input.modifiers.ctrl && input.key_released(egui::Key::Enter) {
             *msg_send = String::default();
+
+            send_dm(
+                input.time,
+                rand::Rng::gen_range(&mut rand::thread_rng(), 0..100),
+                app_size,
+                ctx,
+                msg_send,
+            );
         }
 
         egui::SidePanel::right("right_panel")
@@ -82,39 +90,36 @@ impl epi::App for MainApp {
             ui.label(value.to_string());
         });
 
-        egui::Window::new("Window1")
-            .id(egui::Id::new("Window1"))
+        egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
+            ui.with_layout(egui::Layout::default().with_cross_justify(true), |ui| {
+                ui.add(egui::TextEdit::multiline(msg_send).frame(false));
+            });
+        });
+
+        // for i in 0..1000 {
+        //     send_dm(input, i, app_size, ctx, msg_send);
+        // }
+
+        ctx.request_repaint();
+    }
+}
+
+fn send_dm(time: f64, index: i32, app_size: &[f32; 2], ctx: &egui::CtxRef, _msg_send: &str) {
+    let pos = egui::Pos2::new(time as f32 * 100.0, index as f32);
+    if pos.x < app_size[0] {
+        egui::Window::new(format!("dm{}", index))
+            .id(egui::Id::new(format!("dm{}", index)))
             .resizable(false)
             .collapsible(false)
             .title_bar(false)
             .scroll(false)
-            .fixed_size(egui::Vec2::new(570.0, 80.0))
+            .fixed_pos(pos)
+            .frame(egui::Frame::none())
             .enabled(true)
-            .anchor(egui::Align2::LEFT_BOTTOM, egui::Vec2::new(10.0, -10.0))
             .show(ctx, |ui| {
                 ui.with_layout(egui::Layout::default().with_cross_justify(true), |ui| {
-                    ui.add(egui::TextEdit::multiline(msg_send).frame(false));
+                    ui.label("msg_send");
                 });
             });
-
-        let pos = egui::Pos2::new(input.time as f32 * 200.0, 100.0);
-        if pos.x < app_size[0] {
-            egui::Window::new("dm")
-                .id(egui::Id::new("dm"))
-                .resizable(false)
-                .collapsible(false)
-                .title_bar(false)
-                .scroll(false)
-                .fixed_pos(pos)
-                .frame(egui::Frame::none())
-                .enabled(true)
-                .show(ctx, |ui| {
-                    ui.with_layout(egui::Layout::default().with_cross_justify(true), |ui| {
-                        ui.label("label");
-                    });
-                });
-        }
-
-        ctx.request_repaint();
     }
 }
