@@ -68,11 +68,12 @@ impl epi::App for MainApp {
         // 按键事件
         if !input.modifiers.ctrl && input.key_released(egui::Key::Enter) {
             bullet_queue.push(Bullet {
-                id: rand::Rng::gen_range(&mut rand::thread_rng(), 0..200000),
+                id: rand::Rng::gen_range(&mut rand::thread_rng(), 0..usize::MAX),
                 speed: rand::Rng::gen_range(&mut rand::thread_rng(), 100..200) as f32,
                 time: input.time,
                 msg: msg_send.to_string(),
-                height: rand::Rng::gen_range(&mut rand::thread_rng(), 0..app_size[1] as i32) as f32,
+                height: rand::Rng::gen_range(&mut rand::thread_rng(), 0..app_size[1] as i32 - 100)
+                    as f32,
             });
             *msg_send = String::default();
         }
