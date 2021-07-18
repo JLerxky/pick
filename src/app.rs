@@ -36,7 +36,7 @@ impl epi::App for MainApp {
         _frame: &mut epi::Frame<'_>,
         _storage: Option<&dyn epi::Storage>,
     ) {
-        ctx.set_visuals(egui::Visuals::dark());
+        ctx.set_visuals(egui::Visuals::light());
         let mut style: egui::Style = (*ctx.style()).clone();
         // style.spacing.window_padding = [7.0, 8.0].into();
         style.visuals.window_shadow = egui::epaint::Shadow::small_light();
@@ -116,7 +116,7 @@ fn show_bullet_screen(
         .iter()
         .filter_map(|bullet| {
             let pos = egui::Pos2::new(
-                (input.time - bullet.time) as f32 * bullet.speed,
+                (input.time - bullet.time) as f32 * bullet.speed - 400.0,
                 bullet.height,
             );
             if pos.x < app_size[0] {
