@@ -5,10 +5,7 @@ use eframe::{egui, epi};
 pub struct MainApp {
     pub app_size: [f32; 2],
 
-    label: String,
     msg_send: String,
-    #[cfg_attr(feature = "persistence", serde(skip))]
-    value: f32,
 
     bullet_queue: Vec<Bullet>,
 }
@@ -17,9 +14,7 @@ impl Default for MainApp {
     fn default() -> Self {
         Self {
             app_size: [800.0, 450.0],
-            label: "Hello JLer!".to_owned(),
             msg_send: "".to_owned(),
-            value: 1.0,
             bullet_queue: Vec::new(),
         }
     }
@@ -68,9 +63,7 @@ impl epi::App for MainApp {
     fn update(&mut self, ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {
         let Self {
             app_size,
-            label,
             msg_send,
-            value,
             bullet_queue,
         } = self;
 
@@ -85,6 +78,11 @@ impl epi::App for MainApp {
                 msg: msg_send.to_string(),
                 height: rand::Rng::gen_range(&mut rand::thread_rng(), 0..app_size[1] as i32 - 100)
                     as f32,
+                color: [
+                    rand::Rng::gen_range(&mut rand::thread_rng(), 0..255),
+                    rand::Rng::gen_range(&mut rand::thread_rng(), 0..255),
+                    rand::Rng::gen_range(&mut rand::thread_rng(), 0..255),
+                ],
             });
             *msg_send = String::default();
         }
@@ -94,15 +92,12 @@ impl epi::App for MainApp {
             .resizable(true)
             .show(ctx, |ui| {
                 ui.with_layout(egui::Layout::default().with_cross_justify(true), |ui| {
-                    ui.heading("Side Panel");
-                    ui.label(value.to_string());
+                    ui.heading("");
                 });
             });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading(format!("{}{}", label.as_str(), msg_send.as_str()));
             ui.end_row();
-            ui.label(value.to_string());
         });
 
         egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
@@ -142,7 +137,13 @@ fn show_bullet_screen(
                     .enabled(true)
                     .show(ctx, |ui| {
                         ui.with_layout(egui::Layout::default().with_cross_justify(true), |ui| {
-                            ui.add(egui::Label::new(&bullet.msg).strong().heading());
+                            ui.add(egui::Label::new(&bullet.msg).strong().heading().text_color(
+                                egui::Color32::from_rgb(
+                                    bullet.color[0],
+                                    bullet.color[1],
+                                    bullet.color[2],
+                                ),
+                            ));
                         });
                     });
                 return Some(bullet.clone());
@@ -160,4 +161,5 @@ pub struct Bullet {
     time: f64,
     msg: String,
     height: f32,
+    color: [u8; 3],
 }
