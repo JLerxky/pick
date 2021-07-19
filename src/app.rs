@@ -42,6 +42,17 @@ impl epi::App for MainApp {
         style.visuals.window_shadow = egui::epaint::Shadow::small_light();
         style.visuals.window_corner_radius = 11.2;
         ctx.set_style(style);
+        let mut fonts = egui::FontDefinitions::default();
+        fonts.font_data.insert(
+            "youzai".to_owned(),
+            std::borrow::Cow::Borrowed(include_bytes!("../docs/youzai.ttf")),
+        );
+        fonts
+            .fonts_for_family
+            .get_mut(&egui::FontFamily::Proportional)
+            .unwrap()
+            .insert(0, "youzai".to_owned());
+        ctx.set_fonts(fonts);
     }
 
     #[cfg(feature = "persistence")]
@@ -131,7 +142,7 @@ fn show_bullet_screen(
                     .enabled(true)
                     .show(ctx, |ui| {
                         ui.with_layout(egui::Layout::default().with_cross_justify(true), |ui| {
-                            ui.label(&bullet.msg);
+                            ui.add(egui::Label::new(&bullet.msg).strong().heading());
                         });
                     });
                 return Some(bullet.clone());
