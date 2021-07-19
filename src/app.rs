@@ -47,6 +47,11 @@ impl epi::App for MainApp {
             .get_mut(&egui::FontFamily::Proportional)
             .unwrap()
             .insert(0, "youzai".to_owned());
+        fonts
+            .family_and_size
+            .get_mut(&egui::TextStyle::Heading)
+            .unwrap()
+            .1 = 28.0;
         ctx.set_fonts(fonts);
     }
 
